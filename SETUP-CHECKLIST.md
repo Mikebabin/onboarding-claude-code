@@ -83,19 +83,24 @@ Claude Code activates on first launch. Takes ~30 seconds.
 **What:** Add a plugin that gives Claude structured development skills.
 **Why:** Out of the box, Claude Code will happily jump straight to writing code. Superpowers teaches it disciplined workflows — brainstorm before building, test-driven development, systematic debugging, code review. You'll see it announce "Using [skill]..." in sessions; that's this.
 
-In a Claude Code session, run these in order:
+In a Claude Code session, run:
 
 ```
-/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@claude-plugins-official
 ```
 
-Wait for confirmation. Then:
+This installs from Anthropic's official plugin marketplace (built in — no `/plugin marketplace add` step needed). Verify with `/plugins` — it should show as installed and active. You only do this once; it applies to all projects.
 
-```
-/plugin install superpowers@superpowers-marketplace
-```
+> **Note:** Older versions of this guide installed from the third-party `obra/superpowers-marketplace`. Use the official marketplace instead — same plugin, first-party source. If you already installed the obra copy, disable it in `/plugins` so you don't have two.
 
-Verify with `/plugins` — it should show as installed and active. You only do this once; it applies to all projects.
+### How much process to use (token efficiency)
+
+Superpowers includes two ways to execute an implementation plan, and they differ a lot in cost:
+
+- **Inline (default):** Claude executes the plan itself in one session, then runs a single code review at the end. Use this for small plans — up to ~4–5 tasks, tightly coupled changes, or work in one subsystem. One shared context means files are read once and cached; this is the token-efficient path, and current models (Opus/Fable) hold enough context to do it well.
+- **Subagent-driven development (SDD):** Claude dispatches a fresh implementer *and* reviewer agent per task, plus a final whole-branch review. Each agent re-reads everything from scratch, so a 6-task plan can spawn 15–20 fresh contexts. Reserve it for large plans (6+ independent tasks) or risky work where independent per-task review is the point.
+
+Either way, keep the end-of-branch review — it's the cheap part of the process that catches most of what review catches.
 
 ---
 
