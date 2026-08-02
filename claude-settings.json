@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "default": "plan"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/npm-guard.sh",
+            "statusMessage": "Checking command safety..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.sh",
+            "statusMessage": "Scanning for secrets..."
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.sh",
+            "statusMessage": "Scanning for sensitive files..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/unicode-scan.sh",
+            "timeout": 10,
+            "statusMessage": "Running security scan..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+# .npmrc — Project-scope npm security hardening
+# Place this at the root of the repository (rename to .npmrc).
+
+# Prevent arbitrary script execution during install
+ignore-scripts=true
+
+# Require exact versions (no floating semver)
+save-exact=true
+
+# Only use packages released 3+ days ago
+# (reduces exposure to newly-published malicious packages)
+# Requires npm >= 11.10.0 — on older npm this is SILENTLY ignored; check npm -v
+min-release-age=3
+
+# Skip funding banners
+fund=false
+
+# Keep audit warnings on (review with 'npm audit'; 'npm audit fix' is blocked by npm-guard)
+audit=true
