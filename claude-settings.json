@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "default": "plan"
+    "defaultMode": "plan"
   },
   "hooks": {
     "PreToolUse": [

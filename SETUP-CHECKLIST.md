@@ -1,12 +1,15 @@
 # Claude Code Desktop Setup — New Collaborator Onboarding
 
-This checklist ensures a clean, safe, and learning-optimized Claude Code environment on Mac Neo.
+This checklist takes you from a fresh Mac to a working, safety-hardened Claude Code environment. Each step says **what happens** and **why it matters** — you should never be typing something you don't understand.
+
+Budget ~30–45 minutes. If any step fails, stop and send Mike the exact output — don't improvise around it.
 
 ---
 
 ## Step 0: Get This Repo
 
-If you're reading this on GitHub, clone it so you have the docs locally:
+**What:** Clone the onboarding repo so you have these docs locally.
+**Why:** You'll want the checklist and reference files next to you while you work, and Claude can read them too.
 
 ```bash
 git clone https://github.com/Mikebabin/onboarding-claude-code.git
@@ -17,57 +20,70 @@ cd onboarding-claude-code
 
 ---
 
-## Pre-Setup (Machine Requirements)
+## Step 1: Machine Prerequisites
 
-Run these in Terminal before opening Claude Code:
+**What:** Verify Homebrew, install `jq`, verify Node and npm versions.
+**Why:** The safety hooks are shell scripts that parse JSON — they need `jq` (or `node` as a fallback) to read what Claude is about to do. And one of the npm protections (`min-release-age`) only exists in newer npm; on older versions it's *silently ignored*, which is worse than an error.
+
+Run these in Terminal:
 
 ```bash
 # 1. Verify Homebrew is installed and at /opt/homebrew
 which brew
 # Expected: /opt/homebrew/bin/brew
 
-# 2. Install jq (required by hooks)
+# 2. Install jq (the hooks use it to parse Claude's tool calls)
 brew install jq
 
-# 3. Verify Node.js and npm version
+# 3. Verify Node.js and npm versions
 node -v  # should be v18+
-npm -v   # must be >= 11.10.0 for min-release-age support
+npm -v   # must be >= 11.10.0 — older versions silently ignore min-release-age
+```
 
-# If npm is too old, upgrade:
+If npm is too old:
+
+```bash
 npm install -g npm@latest
 ```
 
-**If any of these fail,** stop and let me know the output. The hooks won't work safely without them.
+**If any of these fail,** stop and send Mike the output. The hooks won't work safely without them.
 
 ---
 
-## Step 1: Clone the Project Repository
+## Step 2: Clone the Project Repository
 
-This is the repo you'll actually work in (Mike will give you the name — it's a different repo from this onboarding one):
+**What:** Clone the repo you'll actually work in (Mike will give you the name — it's a different repo from this onboarding one).
+**Why:** The safety configuration lives *inside the project repo* — a committed `.claude/` directory with the hooks and settings, plus a hardened `.npmrc`. Cloning it is what installs the safety layer; there's nothing to copy or configure by hand.
 
 ```bash
 git clone https://github.com/Mikebabin/<project-repo>.git
 cd <project-repo>
 ```
 
-The `.claude/` directory in the project repo is already configured with the safety hooks. You don't need to create or copy anything — the onboarding repo you cloned in Step 0 is just documentation and reference copies.
+The onboarding repo from Step 0 is just documentation and reference copies.
 
 ---
 
-## Step 2: Install Claude Desktop + Claude Code
+## Step 3: Install Claude Desktop + Claude Code
+
+**What:** Install the app you'll be working in.
+**Why:** Claude Code is the agent; everything else in this checklist exists to make it safe and productive.
 
 1. Download **Claude Desktop** from https://claude.ai/download
 2. Install to Applications
-3. Launch it from Applications (not Terminal — this is how it'll normally run)
+3. Launch it from Applications (not Terminal — this is how it'll normally run, and it matters: the hooks are written to survive the different environment a Dock-launched app gets)
 4. When it opens, click the **Code** tab at the bottom
 
-Claude Code will activate on first launch. This takes ~30 seconds.
+Claude Code activates on first launch. Takes ~30 seconds.
 
 ---
 
-## Step 3: Install Superpowers Plugin (One Time)
+## Step 4: Install the Superpowers Plugin (One Time)
 
-In a Claude Code session, run these commands in order:
+**What:** Add a plugin that gives Claude structured development skills.
+**Why:** Out of the box, Claude Code will happily jump straight to writing code. Superpowers teaches it disciplined workflows — brainstorm before building, test-driven development, systematic debugging, code review. You'll see it announce "Using [skill]..." in sessions; that's this.
+
+In a Claude Code session, run these in order:
 
 ```
 /plugin marketplace add obra/superpowers-marketplace
@@ -79,75 +95,82 @@ Wait for confirmation. Then:
 /plugin install superpowers@superpowers-marketplace
 ```
 
-Type `/plugins` to verify it shows as installed and active. You only do this once.
+Verify with `/plugins` — it should show as installed and active. You only do this once; it applies to all projects.
 
 ---
 
-## Step 4: Verify the Safety Hooks Are Active
+## Step 5: Verify the Safety Hooks Are Active
 
-Type `/hooks` in Claude Code. You should see three `Project` hooks:
+**What:** Confirm the project's hooks are registered.
+**Why:** A hook that isn't registered protects nothing. This is the moment you confirm the safety layer is actually on.
 
-- `PreToolUse` → `npm-guard.sh`
-- `PreToolUse` → `secret-scan.sh`
-- `SessionStart` → `unicode-scan.sh`
+Open the project folder in Claude Code (File > Open Folder), then type `/hooks`. You should see **four registrations, all with source `Project`**:
 
-All should have source `Project`, not `User`. If you see `User` hooks or they're missing, stop and ask me.
+| Event | Matcher | Hook |
+|-------|---------|------|
+| `PreToolUse` | `Bash` | `npm-guard.sh` |
+| `PreToolUse` | `Bash` | `secret-scan.sh` |
+| `PreToolUse` | `Read\|Edit\|Write` | `secret-scan.sh` |
+| `SessionStart` | — | `unicode-scan.sh` |
+
+(secret-scan appears twice on purpose: once screening terminal commands, once screening direct file access — two doors into the same secrets.)
+
+If any are missing, or show source `User` instead of `Project`, stop and ask Mike.
 
 ---
 
-## Step 5: Test Each Hook (Critical)
+## Step 6: Test Each Hook (Critical)
 
-These deliberately trigger the guards to confirm they work:
+**What:** Deliberately trip each guard once.
+**Why:** You need to see what a block looks like *before* you hit one for real — so when it happens mid-task, you recognize it as the system working, not breaking. And an untested guard is an assumed guard.
 
-**Test 1: npm-guard blocks risky npm verbs**
+**Test 1: npm-guard blocks risky npm commands**
+
+Ask Claude to run:
 
 ```
-npm install some-random-package --install-option="--build-from-source"
+npm install -g cowsay
 ```
 
-Expected: Claude Code blocks it with a clear reason. You see a denial in the transcript.
+Expected: blocked, with a message explaining that global installs are disallowed and to install into the project with a pinned version instead.
 
-**Test 2: unicode-scan fires at SessionStart**
+**Test 2: secret-scan blocks credential reads**
 
-Start a new Claude Code session (File > New Session). Look for a `unicode-scan.sh` hook output in the transcript. It should show a scan result or a quiet exit.
+Ask Claude to "read the .env file".
 
-**Test 3: secret-scan blocks .env reads**
+Expected: blocked, with a message saying it looks like a credential file. This fires whether Claude uses the terminal (`cat .env`) or its file-reading tool — that's why the hook is registered twice.
 
-Ask Claude Code to "read the .env file". Expected: blocked with a reason.
+**Test 3: unicode-scan fires at session start**
 
-If all three block as expected, the layer is active and working. If you see `hook error` notices instead of actual blocks, the PATH issue (#1 from earlier) is present — tell me and we'll fix it.
+Start a new session (File > New Session) in the project folder. In the transcript you should see the SessionStart hook run and report — normally "Unicode security scan: no suspicious patterns detected."
+
+**If you see `hook error` notices instead of clean blocks,** that's usually the PATH/jq issue — see Troubleshooting, then tell Mike.
 
 ---
 
-## Step 6: Configure for Learning (Not Full Strength)
+## Step 7: Understand Learning Mode (Already Configured)
 
-Open `.claude/settings.json` in your editor. Find the `permissions` block (near the top).
+**What:** The project ships with permission mode set to `plan` — nothing to edit; just understand what you're seeing.
+**Why:** In plan mode, Claude proposes each action and waits for your approval before running it. It's slower, and that's the point: while you're learning, every dialog is a chance to see *what* Claude wants to do and *why*, before it happens. Nothing runs without you.
 
-Change this:
+This is set in the project's `.claude/settings.json`:
 
 ```json
 "permissions": {
-  "default": "default"
+  "defaultMode": "plan"
 }
 ```
 
-To this:
+You'll see permission dialogs constantly at first. Read them — they're the curriculum.
 
-```json
-"permissions": {
-  "default": "plan"
-}
-```
-
-Save. Restart Claude Code.
-
-**What this does:** You now see a permission dialog before Claude runs *every* tool call. You approve each one. This is slower but teaches you what Claude is doing at each step — exactly what you need while learning. Once you're confident, you can change back to `"default": "auto"`.
+Once you're comfortable (give it a week or two), talk to Mike about relaxing it. The usual next step is `"defaultMode": "acceptEdits"` (file edits auto-approved, commands still ask). Don't change this yourself yet.
 
 ---
 
-## Step 7: GitHub SSH Setup (Optional but Recommended)
+## Step 8: GitHub Authentication
 
-When Claude Code needs to push code:
+**What:** Log in to GitHub so Claude can push code.
+**Why:** Claude uses your cached credentials for git operations — no tokens pasted into terminals (which the secret-scan hook would rightly block anyway).
 
 ```bash
 gh auth login
@@ -155,83 +178,81 @@ gh auth login
 # Authenticate via browser
 ```
 
-Claude Code will use your cached credentials. No SSH key juggling needed.
-
 ---
 
 ## First Session: Test Run
 
-1. Open Claude Code (from Applications, via the Desktop icon, or the Code tab)
-2. Open your project folder (File > Open Folder, pick the repo you cloned)
-3. Ask Claude something simple: `"Summarize the README"`
-4. Watch the `/hooks` output and the permission dialogs
+**What:** One easy end-to-end session.
+**Why:** Confirms the whole stack — app, plugin, hooks, permissions — works together before you start real work.
+
+1. Open Claude Code from Applications (Dock/GUI, not Terminal)
+2. Open your project folder (File > Open Folder)
+3. Ask something simple: `"Summarize the README"`
+4. Watch the SessionStart scan fire, then the permission dialogs
 5. Approve a tool call and see it run
 
-If everything works, you're done.
+If that works, you're done.
 
 ---
 
 ## Troubleshooting
 
 ### Hooks show as `User` instead of `Project`
-You may have accidentally edited `~/.claude/settings.json`. The project hooks in `.claude/settings.json` should take precedence. Verify the file exists:
+Something in your home-directory `~/.claude/settings.json` is registering hooks. The project hooks should still work, but tell Mike — sources shouldn't be mixed during onboarding.
 ```bash
-ls -la .claude/settings.json
+ls -la .claude/settings.json   # confirm the project file exists
 ```
-If it's there, restart Claude Code. If it's not, tell me.
 
 ### `hook error: jq not found`
-Homebrew's `jq` isn't on the PATH when Claude Code launches from the GUI. Run:
+Apps launched from the Dock don't get Homebrew's PATH. The hooks compensate for this internally, but only if `jq` is actually installed at `/opt/homebrew/bin`:
 ```bash
 brew install jq
+which jq   # expected: /opt/homebrew/bin/jq
 ```
-Then restart Claude Desktop completely (not just the session).
+Then fully quit Claude Desktop (⌘Q) and relaunch — a session restart isn't enough.
 
 ### npm blocks everything, even normal installs
-This is expected at first. The guards are strict. When you hit a legitimate need, ask me before disabling anything — there's usually a sanctioned path (like `npm run build` for build scripts).
+Mostly expected — the guards are strict on purpose. Plain `npm install <package>` should pass; global installs, blanket updates, and script re-enabling won't. When a legitimate need hits a guard, ask Mike — there's usually a sanctioned path (e.g., `npm rebuild <package>` for native modules).
 
 ### `min-release-age` not working
-Verify npm version again:
 ```bash
 npm -v
 ```
-Must be ≥ 11.10.0. If it's older, `min-release-age=3` silently doesn't apply.
+Must be ≥ 11.10.0. Older npm ignores the setting **silently** — no warning, no error, no protection.
 
 ---
 
-## What's Actually Happening
+## What's Actually Happening (The Full Picture)
 
-**Committed to the repo (`.claude/` directory):**
-- `.claude/settings.json` — hook wiring + safety rules
-- `.claude/hooks/*.sh` — three shell scripts that guard against risky operations
-- `.npmrc` — npm security settings (ignore build scripts, exact versions, minimum age)
+**Committed to the project repo — you get these automatically by cloning:**
+- `.claude/settings.json` — wires the hooks to Claude's actions + sets plan-mode permissions
+- `.claude/hooks/*.sh` — the three guard scripts
+- `.npmrc` — npm hardening: `ignore-scripts=true` (packages can't run code at install time), `save-exact=true` (no floating versions), `min-release-age=3` (no packages published in the last 3 days — poisoned releases are usually caught within days)
 
-**You install once (not in the repo):**
-- Claude Desktop (GUI launcher)
+**You install once on your machine — not in any repo:**
+- Claude Desktop (the app)
+- `jq` via Homebrew (JSON parsing for the hooks)
 - Superpowers plugin (development skills)
 
-**The hooks do:**
-- **npm-guard**: blocks risky npm verbs like `--build-from-source`, `--unsafe-perm`
-- **secret-scan**: blocks reads of `.env` and other sensitive files
-- **unicode-scan**: scans for hidden Unicode tricks at session start (extremely rare but severe)
+**The division of labor:**
+- The **hooks** stop dangerous *actions* (risky installs, credential reads, hidden Unicode)
+- The **.npmrc** stops dangerous *packages* (install-time scripts, brand-new releases)
+- **Plan mode** keeps *you* in the loop on everything else
 
-**The learning config:**
-- Permission mode set to `plan` so you see and approve every tool call
-- Superpowers plugin loaded so Claude knows TDD, debugging, code review workflows
-
-All three hooks are intentionally strict to teach good practices. As you get comfortable, we can relax specific things.
+Everything is intentionally strict while you learn. As you get comfortable, specific things get relaxed deliberately — one at a time, with a reason, by asking. Never by working around a guard.
 
 ---
 
 ## You're Ready When
 
-- [ ] Homebrew, jq, Node, npm all installed and verified
-- [ ] Repository cloned
-- [ ] Claude Desktop running
-- [ ] Superpowers installed (`/plugins` shows it)
-- [ ] `/hooks` shows three Project hooks
-- [ ] All three hooks tested and blocking as expected
-- [ ] Permission mode set to `plan`
-- [ ] First session ran without errors
+- [ ] Homebrew, jq, Node, npm all installed and verified (Step 1)
+- [ ] Project repository cloned (Step 2)
+- [ ] Claude Desktop running, launched from Applications (Step 3)
+- [ ] Superpowers installed — `/plugins` shows it (Step 4)
+- [ ] `/hooks` shows four `Project` registrations (Step 5)
+- [ ] All three guards tested and firing as expected (Step 6)
+- [ ] You've read what plan mode is and why it's on (Step 7)
+- [ ] `gh auth login` done (Step 8)
+- [ ] First session ran clean
 
-If anything is unclear or fails, paste the exact error and I'll walk you through it.
+If anything is unclear or fails, paste the exact error to Mike.

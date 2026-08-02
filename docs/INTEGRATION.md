@@ -107,10 +107,10 @@ Have them run the onboarding checklist from `SETUP-CHECKLIST.md` (in the onboard
 
 1. Clone the repo
 2. Launch Claude Desktop, open the folder
-3. Type `/hooks` — should show three `Project` hooks
+3. Type `/hooks` — should show four `Project` registrations (npm-guard on Bash, secret-scan on both Bash and Read|Edit|Write, unicode-scan on SessionStart)
 4. Deliberately trigger each hook to confirm it blocks
 
-If all three hooks show as `Project` and block as expected, they're ready to work.
+If all registrations show as `Project` and the guards block as expected, they're ready to work.
 
 ---
 
