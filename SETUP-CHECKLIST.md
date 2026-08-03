@@ -25,6 +25,8 @@ cd onboarding-claude-code
 > ```
 >
 > Click **Install** in the dialog (takes ~5 minutes; no Apple ID needed — it's the command-line tools, not full Xcode). Then re-run the `git clone`.
+>
+> **Heads up:** after "Install requested," the dialog often opens *behind* your other windows — if nothing seems to happen, minimize or move your windows and look for it before assuming it failed. (More fallbacks in Troubleshooting if it genuinely never appears.)
 
 ---
 
