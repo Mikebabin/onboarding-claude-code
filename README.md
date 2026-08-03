@@ -29,6 +29,14 @@ You don't have to remember any rules. The guards are automatic, they're committe
 
 **The one rule:** if a guard blocks something, it shows a reason. If the reason doesn't make sense, **ask Mike — don't disable the guard or work around it.** The guards are strict on purpose, and there's a sanctioned path for almost every legitimate need.
 
+## Where the safety layer applies
+
+Claude Code runs in several places, and they all share the same configuration — so the guards travel with you:
+
+- **Identical protection:** the Claude Code desktop app (the Code tab in Claude Desktop), the `claude` CLI in a terminal, and the VS Code/JetBrains extensions. Same engine, same project `.claude/` directory, same hooks.
+- **No protection:** the regular Claude *chat* tab (or claude.ai in a browser). That's a different product — hooks don't exist there. Do project work in Claude Code only.
+- **Partial:** web sessions at claude.ai/code run in a cloud environment. The hooks committed to the project repo still apply (they're cloned with the code), but machine-level pieces — the Superpowers plugin, your personal settings — stay on your Mac.
+
 ## If you're the new collaborator: start here
 
 1. Work through **[SETUP-CHECKLIST.md](./SETUP-CHECKLIST.md)** top to bottom. Every step says what it does and why. Budget ~30–45 minutes.

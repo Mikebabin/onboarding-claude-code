@@ -76,6 +76,11 @@ The onboarding repo from Step 0 is just documentation and reference copies.
 
 Claude Code activates on first launch. Takes ~30 seconds.
 
+**Two things to keep straight:**
+
+- **Claude Desktop is two products in one window.** The regular chat tab is ordinary Claude — it has *none* of the safety layer in this checklist. Everything here (hooks, plan mode, npm hardening) exists only inside **Claude Code** sessions, i.e. the Code tab. Do project work in the Code tab, not the chat tab.
+- **The desktop app isn't the only way in.** The `claude` CLI in Terminal and the VS Code/JetBrains extensions are the same engine — they read the same project `.claude/` directory and the same per-machine config, so the guards fire identically in all of them. This checklist assumes the desktop app because it's the easiest start; switch surfaces later without redoing anything. (One exception: web sessions at claude.ai/code run in a cloud environment — the project's committed hooks still apply there, but machine-level pieces like the Superpowers plugin don't follow. Stick to your Mac while onboarding.)
+
 ---
 
 ## Step 4: Install the Superpowers Plugin (One Time)
