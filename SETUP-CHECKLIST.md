@@ -18,6 +18,14 @@ cd onboarding-claude-code
 
 (Repo URL may differ — use whatever link Mike sent you.)
 
+> **If this errors with `xcode-select: note: no developer tools were found`** (or a dialog pops up offering to install tools): that's normal on a fresh Mac. `git` isn't actually installed yet — macOS ships a stub that offers to install the **Xcode Command Line Tools** the first time you use it. Run:
+>
+> ```bash
+> xcode-select --install
+> ```
+>
+> Click **Install** in the dialog (takes ~5 minutes; no Apple ID needed — it's the command-line tools, not full Xcode). Then re-run the `git clone`.
+
 ---
 
 ## Step 1: Machine Prerequisites
@@ -39,6 +47,10 @@ brew install jq
 node -v  # should be v18+
 npm -v   # must be >= 11.10.0 — older versions silently ignore min-release-age
 ```
+
+**If `which brew` prints nothing,** Homebrew isn't installed. Install it yourself, in Terminal, using the command on the front page of https://brew.sh (it also installs the Xcode Command Line Tools if Step 0 didn't already). One important habit note: that install command is a `curl | bash` — the exact pattern the safety hooks *block Claude from running*. That's not a contradiction: the rule is that piping the internet straight into a shell is only acceptable when a human deliberately does it from a trusted source, never when an AI agent does it mid-task. So run it by hand, don't ask Claude to.
+
+**If `node` isn't found,** install it after Homebrew: `brew install node`.
 
 If npm is too old:
 
@@ -206,6 +218,9 @@ If that works, you're done.
 ---
 
 ## Troubleshooting
+
+### `xcode-select: note: no developer tools were found`
+You ran `git` (or another developer command) on a Mac that doesn't have the Xcode Command Line Tools yet. Run `xcode-select --install`, click **Install** in the dialog, wait ~5 minutes, then retry the command that failed. See Step 0.
 
 ### Hooks show as `User` instead of `Project`
 Something in your home-directory `~/.claude/settings.json` is registering hooks. The project hooks should still work, but tell Mike — sources shouldn't be mixed during onboarding.
