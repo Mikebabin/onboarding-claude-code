@@ -50,7 +50,18 @@ node -v  # should be v18+
 npm -v   # must be >= 11.10.0 — older versions silently ignore min-release-age
 ```
 
-**If `which brew` prints nothing,** Homebrew isn't installed. Install it yourself, in Terminal, using the command on the front page of https://brew.sh (it also installs the Xcode Command Line Tools if Step 0 didn't already). One important habit note: that install command is a `curl | bash` — the exact pattern the safety hooks *block Claude from running*. That's not a contradiction: the rule is that piping the internet straight into a shell is only acceptable when a human deliberately does it from a trusted source, never when an AI agent does it mid-task. So run it by hand, don't ask Claude to.
+**If `which brew` prints nothing,** Homebrew isn't installed. Install it yourself, in Terminal, using the command on the front page of https://brew.sh (it also installs the Xcode Command Line Tools if Step 0 didn't already). It asks for your Mac login password — that's expected.
+
+When the installer finishes, **it prints a "Next steps" section — do it.** Homebrew installs to `/opt/homebrew` but isn't on your PATH until you run the two lines it shows:
+
+```bash
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+
+Skipping this is the #1 reason `which brew` still prints nothing after a successful install. After running them, `which brew` should print `/opt/homebrew/bin/brew`.
+
+One important habit note: the brew.sh install command is a `curl | bash` — the exact pattern the safety hooks *block Claude from running*. That's not a contradiction: the rule is that piping the internet straight into a shell is only acceptable when a human deliberately does it from a trusted source, never when an AI agent does it mid-task. So run it by hand, don't ask Claude to.
 
 **If `node` isn't found,** install it after Homebrew: `brew install node`.
 
