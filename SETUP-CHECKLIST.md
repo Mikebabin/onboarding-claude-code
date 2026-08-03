@@ -222,6 +222,21 @@ If that works, you're done.
 ### `xcode-select: note: no developer tools were found`
 You ran `git` (or another developer command) on a Mac that doesn't have the Xcode Command Line Tools yet. Run `xcode-select --install`, click **Install** in the dialog, wait ~5 minutes, then retry the command that failed. See Step 0.
 
+### `xcode-select --install` says "Install requested" but nothing happens
+The install dialog sometimes never appears — a known macOS flake. In order:
+
+1. `xcode-select -p` — if it prints `/Library/Developer/CommandLineTools`, the tools are already installed; just retry your command.
+2. The dialog may be hiding behind other windows or slow to appear; also check **System Settings → General → Software Update**.
+3. Reboot, then run `xcode-select --install` again. This fixes it most of the time.
+4. Still stuck: install without the GUI —
+   ```bash
+   sudo touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+   softwareupdate --list          # find the "Command Line Tools for Xcode-XX.X" label
+   softwareupdate --install "Command Line Tools for Xcode-XX.X"   # label exactly as listed
+   sudo rm /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+   ```
+5. Last resort: download the Command Line Tools installer from https://developer.apple.com/download/all/ (free Apple ID required). Or just proceed to installing Homebrew (Step 1) — its installer can pull in the CLT itself.
+
 ### Hooks show as `User` instead of `Project`
 Something in your home-directory `~/.claude/settings.json` is registering hooks. The project hooks should still work, but tell Mike — sources shouldn't be mixed during onboarding.
 ```bash
